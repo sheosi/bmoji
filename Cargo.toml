@@ -1,0 +1,16 @@
+[package]
+name = "bmoji"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+emoji = "0.2.1"
+iced = {version="0.10.0", features=["debug", "image", "lazy"]}
+iced_aw = {version="0.7.0", default-features=false, features=["card"]}
+serde = {version="1.0.193", features=["derive"]}
+serde_json = "1.0.108"
+tantivy = "0.21.1"
+image = "0.24.6"
+dconf_rs = "0.3.0"

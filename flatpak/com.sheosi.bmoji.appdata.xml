@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Bilal Elmoussaoui 2020 <bilal.elmoussaoui@gnome.org> -->
+<component type="desktop-application">
+  <id>com.sheosi.bmoji</id>
+  <metadata_license>BSD-3-Clause</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <name>Bmoji</name>
+  <summary>A simple emoji picker</summary>
+  <description>
+    <p>An emoji picker that's fast, simple and to the point.
+    Made with Rust and Iced.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://gitlab.gnome.org/World/design/contrast/raw/master/data/resources/screenshots/screenshot1.png</image>
+      <caption>Main Window</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://belmoussaoui.com/</url>
+<!--
+Open Age Rating Service
+https://hughsie.github.io/oars/index.html
+-->
+  <content_rating type="oars-1.0" />
+  <releases>
+    <release version="0.0.1" date="2020-02-08">
+      <description>
+        <p>First release of Bmoji</p>
+      </description>
+    </release>
+  </releases>
+  <kudos>
+    <!--
+    GNOME Software kudos:
+    https://gitlab.gnome.org/GNOME/gnome-software/blob/master/doc/kudos.md
+    -->
+    <kudo>ModernToolkit</kudo>
+    <kudo>HiDpiIcon</kudo>
+  </kudos>
+  <developer_name>Sergio Tortosa</developer_name>
+  <update_contact>sertorbe@protonmail.com</update_contact>
+
+  <launchable type="desktop-id">com.sheosi.bmoji.desktop</launchable>
+</component>

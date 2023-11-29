@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Bmoji
+Comment=A simple emoji picker
+Type=Application
+# should be the same as the Cargo project name
+Exec=bmoji
+Terminal=false
+Categories=Utility;
+Keywords=Emoji;
+Icon=com.sheosi.bmoji
+StartupNotify=true
