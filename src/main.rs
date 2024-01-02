@@ -1,3 +1,4 @@
+mod search;
 mod theme;
 
 use std::cell::RefCell;
@@ -14,18 +15,24 @@ use iced::widget::text_input::{Id, Icon};
 use iced::{Application, Settings, Element, Subscription, executor, Theme, Command, window, keyboard, Event, subscription, Renderer, Length, Font};
 use iced::widget::{column,button, text_input, container, row, scrollable, text, responsive};
 use serde::{Deserialize, Serialize};
+use search::{SearchEngine, TantivySearch};
 use theme::RoundedTheme;
 
-const EMOJI_SIZE: u16 = 30;
-const SPACING: u16 = 6;
-const EMOJI_PER_LINE: u16 = 8;
+// Values that could be useful to be configured
+mod conf {
+    pub const EMOJI_SIZE: u16 = 30;
+    pub const SPACING: u16 = 6;
+    pub const EMOJI_PER_LINE: u16 = 8;
+    pub const EMOJI_FONT_SIZE: u16 = 16;
+    pub const EMOJI_LINE_HEIGHT: f32 = 0.93;
+    pub const MAX_HISTORY_SIZE: usize = 80;
+}
+
+// Application's constants
 const MAIN_PADDING: u16 = 10;
 const GOLDEN_RATIO: f32 = 1.618034;
-const EMOJI_FONT_SIZE: u16 = 16;
-const EMOJI_LINE_HEIGHT: f32 = 0.93;
 const SCROLLBAR_PADDING: u16 = 12;
 const EMOJI_FONT: Font = Font::with_name("Noto Color Emoji");
-const MAX_HISTORY_SIZE: usize = 80;
 
 fn get_conf_dir() -> PathBuf {
     PathBuf::from(env::var("XDG_CONFIG_HOME").unwrap_or(
@@ -43,7 +50,7 @@ fn get_options_path() -> PathBuf {
 }
 
 fn main() -> iced::Result {
-    let width = (EMOJI_SIZE+SPACING)*EMOJI_PER_LINE+MAIN_PADDING*2+SCROLLBAR_PADDING;
+    let width = (conf::EMOJI_SIZE+conf::SPACING)*conf::EMOJI_PER_LINE+MAIN_PADDING*2+SCROLLBAR_PADDING;
     let height = ((width as f32)/GOLDEN_RATIO).ceil() as u32;
     
     Bmoji::run(Settings {
@@ -112,7 +119,7 @@ impl BmojiOptions {
         let options_file = File::create(get_options_path()).unwrap();
         let writer = BufWriter::new(options_file);
         let options_with_lim_history = BmojiOptions{
-            history: EmojiHistory(self.history.iter().take(MAX_HISTORY_SIZE).cloned().collect())
+            history: EmojiHistory(self.history.iter().take(conf::MAX_HISTORY_SIZE).cloned().collect())
         };
         serde_json::to_writer(writer, &options_with_lim_history).unwrap();
     }
@@ -139,7 +146,8 @@ struct Bmoji {
     category: EmojiCategory,
     first_emoji: RefCell<Option<&'static Emoji>>,
     search_input_id: Id,
-    options: BmojiOptions
+    options: BmojiOptions,
+    search_eng: TantivySearch
 }
 
 struct VariantPicker {
@@ -159,20 +167,20 @@ enum BmojiMessage {
 fn emoji_button<'a>(glyph: &'static str, has_variants: bool) -> iced::widget::Button<'a, BmojiMessage, Renderer<theme::RoundedTheme>> {
     button(
         text(glyph)
-        .size(EMOJI_FONT_SIZE)
-        .line_height(EMOJI_LINE_HEIGHT)
+        .size(conf::EMOJI_FONT_SIZE)
+        .line_height(conf::EMOJI_LINE_HEIGHT)
         .horizontal_alignment(Horizontal::Center)
         .font(EMOJI_FONT)
     )
-    .height(EMOJI_SIZE)
-    .width(EMOJI_SIZE)
+    .height(conf::EMOJI_SIZE)
+    .width(conf::EMOJI_SIZE)
     .style(if has_variants {theme::ButtonStyle::Emoji} else {theme::ButtonStyle::Plain})
 }
 
 fn grid_row<'a>(emoji_row: &[&'static Emoji]) -> Element<'a, BmojiMessage, Renderer<theme::RoundedTheme>>  {
     let button_row = 
     emoji_row.iter().map(|emoji_data| {
-            emoji_button(emoji_data.glyph.clone(), !emoji_data.variants.is_empty()).on_press(
+            emoji_button(emoji_data.glyph, !emoji_data.variants.is_empty()).on_press(
                 if emoji_data.variants.is_empty() {
                     BmojiMessage::Glyph(emoji_data.glyph)
                 }
@@ -182,18 +190,18 @@ fn grid_row<'a>(emoji_row: &[&'static Emoji]) -> Element<'a, BmojiMessage, Rende
             ).into()
         }
     ).collect::<Vec<_>>();
-    row(button_row).spacing(SPACING).into()
+    row(button_row).spacing(conf::SPACING).into()
 }
 
 impl Bmoji {
     fn grid_of(&self, elements: Vec<&'static Emoji>) -> Element<'_, BmojiMessage, Renderer<RoundedTheme>> {
         responsive(move |size|{
-            let max_per_row = (size.width/((EMOJI_SIZE + SPACING)as f32)).floor() as usize;
+            let max_per_row = (size.width/((conf::EMOJI_SIZE + conf::SPACING)as f32)).floor() as usize;
             let rows = elements
                 .chunks(max_per_row)
                 .map(grid_row).collect::<Vec<_>>();
 
-            let emoji_grid = column(rows).spacing(SPACING);
+            let emoji_grid = column(rows).spacing(conf::SPACING);
             scrollable(emoji_grid)
             .width(Length::Fill).into()
         }).into()
@@ -217,6 +225,11 @@ impl Application for Bmoji {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let langs = get_langs();
+        let langs_ref = langs.iter().map(|l|l.as_str()).collect::<Vec<&str>>();
+    
+        let search_eng = search::TantivySearch::new(&langs_ref);
+    
         let options = BmojiOptions::load() ;
         let search_input_id = Id::unique();
         (Self {
@@ -226,7 +239,8 @@ impl Application for Bmoji {
             category: if options.history.is_empty() {EmojiCategory::SmileysAndEmotion} else {EmojiCategory::History},
             first_emoji:  RefCell::new(None),
             search_input_id: search_input_id.clone(),
-            options 
+            options,
+            search_eng
         }, iced::widget::text_input::focus(search_input_id))
     }
 
@@ -265,7 +279,7 @@ impl Application for Bmoji {
                 self.category = category;
                 self.variant_picker = None;
                 self.has_been_interacted = true;
-                iced::widget::text_input::focus(self.search_input_id.clone())
+               self.search_query = String::new(); iced::widget::text_input::focus(self.search_input_id.clone())
             },
             BmojiMessage::Event(Event::Keyboard(keyboard::Event::KeyReleased { key_code: keyboard::KeyCode::Escape, modifiers: _ })) => {
                 self.save_and_quit()
@@ -276,10 +290,10 @@ impl Application for Bmoji {
                 self.has_been_interacted = true;
                 if let Some(first_emoji) = fm {
                     if first_emoji.variants.is_empty() {
-                        self.copy_and_quit(first_emoji.glyph.clone())
+                        self.copy_and_quit(first_emoji.glyph)
                     }
                     else {
-                        self.variant_picker = Some(VariantPicker { emoji: first_emoji.clone() });
+                        self.variant_picker = Some(VariantPicker { emoji: first_emoji });
                         Command::none()
                     }
                 }
@@ -349,7 +363,7 @@ impl Application for Bmoji {
             iced_aw::card(text(variant_picker.emoji.glyph).font(EMOJI_FONT), 
                 container(row(variant_picker.emoji.variants.iter().map(
                     |v|emoji_button(v.glyph, false).on_press(BmojiMessage::Glyph(v.glyph)).into()
-                ).collect::<Vec<_>>()).spacing(7)).height(Length::Fill)).close_size(EMOJI_SIZE as f32).height(Length::Fill).into()
+                ).collect::<Vec<_>>()).spacing(7)).height(Length::Fill)).close_size(conf::EMOJI_SIZE as f32).height(Length::Fill).into()
         } else {
             let emoji_list= if self.search_query.is_empty() {
                 match self.category {
@@ -366,7 +380,7 @@ impl Application for Bmoji {
                 }
                 
             } else {
-                vec![]
+                self.search_eng.search_emojis(&self.search_query, conf::EMOJI_PER_LINE*3)
             }.into_iter().filter(|_|true).collect::<Vec<_>>();
             *self.first_emoji.borrow_mut() = emoji_list.first().cloned();
 
@@ -411,4 +425,34 @@ impl Application for Bmoji {
 
         container(column![search_row, body, categories].spacing(8)).padding(MAIN_PADDING).into()
     }
+}
+
+fn get_langs() -> Vec<String> {
+    use fluent_langneg::{convert_vec_str_to_langids, negotiate};
+    use unic_langid::LanguageIdentifier;
+    use emoji::ANNOTATION_LANGS_AVAILABLE;
+
+    const DEFAULT_LANG:&str = "en";
+    const UTF8_SUFFIX: &str=".UTF-8";
+    
+    let lang_str = std::env::var("LANG").map(
+        |s|{
+            if s.ends_with(UTF8_SUFFIX){
+                s[0..s.len()-UTF8_SUFFIX.len()].to_string()
+            }
+            else {
+                s
+            }
+        }
+    ).unwrap_or(DEFAULT_LANG.to_string());
+
+    let def_lang: LanguageIdentifier = LanguageIdentifier::from_parts("en".parse().expect("Devel error"), None, None, &[]);
+    let lang: LanguageIdentifier = lang_str.parse().unwrap();
+    let available = convert_vec_str_to_langids(ANNOTATION_LANGS_AVAILABLE).unwrap();
+
+    let negotation = negotiate::negotiate_languages(
+        &[lang], &available, Some(&def_lang), negotiate::NegotiationStrategy::Matching
+    );
+
+    [negotation.get(0).unwrap().to_string(), DEFAULT_LANG.to_string()].to_vec()
 }
