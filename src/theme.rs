@@ -16,12 +16,6 @@ pub enum ButtonStyle {
     ClearSearch,
 }
 
-impl From<button::StyleFn<'_, RoundedTheme>> for ButtonStyle {
-    fn from(value: button::StyleFn<'_, RoundedTheme>) -> Self {
-        ButtonStyle::Category
-    }
-}
-
 impl Default for ButtonStyle {
     fn default() -> Self {
         ButtonStyle::Plain

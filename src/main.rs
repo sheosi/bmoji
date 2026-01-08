@@ -12,13 +12,10 @@ use std::str::FromStr;
 use emoji::Emoji;
 use iced::alignment::Horizontal;
 use iced::keyboard::key::Named;
-use iced::widget::button::Catalog;
 use iced::widget::operation::focus;
 use iced::widget::text_input::Icon;
 use iced::widget::{button, column, container, responsive, row, scrollable, text, text_input, Id};
-use iced::{
-    keyboard, window, Element, Event, Font, Length, Pixels, Renderer, Settings, Task, Theme,
-};
+use iced::{keyboard, window, Element, Event, Font, Length, Pixels, Renderer, Settings, Task};
 use search::{SearchEngine, TantivySearch};
 use serde::{Deserialize, Serialize};
 use theme::RoundedTheme;
@@ -233,7 +230,7 @@ fn emoji_button<'a>(
     )
     .height(conf::EMOJI_SIZE)
     .width(conf::EMOJI_SIZE)
-    .style(|t: &RoundedTheme, s| t.style(&ButtonStyle::Emoji, s))
+    .class(ButtonStyle::Emoji)
 }
 
 fn grid_row<'a>(emoji_row: &[&'static Emoji]) -> Element<'a, BmojiMessage, RoundedTheme, Renderer> {
@@ -391,7 +388,7 @@ impl Bmoji {
                 Some(BmojiMessage::Search(String::new()))
             })
             .width(32)
-            .style(|t: &RoundedTheme, s| t.style(&ButtonStyle::ClearSearch, s));
+            .class(ButtonStyle::ClearSearch);
         let search_row = row![inp_search, clear_search].spacing(7);
 
         fn emojis_category(cat: &str) -> Vec<&'static Emoji> {
@@ -458,17 +455,17 @@ impl Bmoji {
         ) -> iced::widget::Button<'a, BmojiMessage, RoundedTheme> {
             button(text(glyph).font(EMOJI_FONT))
                 .on_press(BmojiMessage::CategoryChanged(category))
-                .style(if current_cat == category {
-                    |t: &RoundedTheme, s| t.style(&theme::ButtonStyle::Category, s)
+                .class(if current_cat == category {
+                    theme::ButtonStyle::Category
                 } else {
-                    |t: &RoundedTheme, s| t.style(&theme::ButtonStyle::Plain, s)
+                    theme::ButtonStyle::Plain
                 })
         }
 
         let history_style = if self.category == EmojiCategory::History {
-            |t: &RoundedTheme, s| t.style(&theme::ButtonStyle::Category, s)
+            theme::ButtonStyle::Category
         } else {
-            |t: &RoundedTheme, s| t.style(&theme::ButtonStyle::Plain, s)
+            theme::ButtonStyle::Plain
         };
 
         let history_on_press = if self.options.history.is_empty() {
@@ -480,7 +477,7 @@ impl Bmoji {
         let categories = row!(
             button(text("🕑").font(EMOJI_FONT))
                 .on_press_maybe(history_on_press)
-                .style(history_style),
+                .class(history_style),
             category("😃", self.category, EmojiCategory::SmileysAndEmotion),
             category("🧑", self.category, EmojiCategory::PeopleAndBody),
             category("⚽", self.category, EmojiCategory::Activities),
