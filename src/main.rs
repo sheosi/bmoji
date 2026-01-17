@@ -8,15 +8,15 @@ use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
 use std::slice::Iter;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 use emoji::Emoji;
 use iced::alignment::Horizontal;
-use iced::keyboard::key::Named;
 use iced::widget::operation::focus;
 use iced::widget::text_input::Icon;
 use iced::widget::{button, column, container, responsive, row, scrollable, text, text_input, Id};
 use iced::{
-    keyboard, window, Color, Element, Event, Font, Length, Pixels, Renderer, Settings, Task,
+    event, keyboard, window, Element, Font, Length, Pixels, Renderer, Settings, Subscription, Task,
 };
 use search::{SearchEngine, TantivySearch};
 use serde::{Deserialize, Serialize};
@@ -49,13 +49,11 @@ fn get_conf_dir() -> PathBuf {
 }
 
 fn make_conf_dir() {
-    std::fs::create_dir_all(get_conf_dir().join("bmoji")).unwrap()
+    std::fs::create_dir_all(OPTIONS_PATH.parent().expect("")).expect("")
 }
 
-fn get_options_path() -> PathBuf {
-    println!("{:?}", env::var("XDG_CONFIG_HOME"));
-    get_conf_dir().join("bmoji/options.json")
-}
+static OPTIONS_PATH: LazyLock<PathBuf> =
+    LazyLock::new(|| get_conf_dir().join("bmoji/options.json"));
 
 fn main() -> iced::Result {
     let width = ((conf::EMOJI_SIZE + conf::SPACING) * conf::EMOJI_PER_LINE
@@ -86,6 +84,7 @@ fn main() -> iced::Result {
     };
 
     iced::application(Bmoji::new, Bmoji::update, Bmoji::view)
+        .subscription(Bmoji::subscription)
         .settings(app_settings)
         .window(window_settings)
         .run()
@@ -129,7 +128,7 @@ impl EmojiHistory {
 
 impl BmojiOptions {
     fn load() -> Self {
-        if let Ok(options_file) = File::open(get_options_path()) {
+        if let Ok(options_file) = File::open(OPTIONS_PATH.as_path()) {
             let reader = BufReader::new(options_file);
             serde_json::from_reader(reader).unwrap()
         } else {
@@ -139,7 +138,7 @@ impl BmojiOptions {
 
     fn save(&self) {
         make_conf_dir();
-        let options_file = File::create(get_options_path()).unwrap();
+        let options_file = File::create(OPTIONS_PATH.as_path()).unwrap();
         let writer = BufWriter::new(options_file);
         let options_with_lim_history = BmojiOptions {
             history: EmojiHistory(
@@ -213,9 +212,13 @@ struct VariantPicker {
 enum BmojiMessage {
     Search(String),
     OnSearchEnter,
+    Interaction,
+    Quit,
+    OnUnfocused,
+    GainFocus,
+    SimpleInteraction,
     Glyph(&'static str),
     ShowGlyphVariants(&'static Emoji),
-    Event(Event),
     CategoryChanged(EmojiCategory),
 }
 
@@ -232,7 +235,11 @@ fn emoji_button<'a>(
     )
     .height(conf::EMOJI_SIZE)
     .width(conf::EMOJI_SIZE)
-    .class(ButtonStyle::Emoji)
+    .class(if has_variants {
+        ButtonStyle::Category
+    } else {
+        ButtonStyle::Emoji
+    })
 }
 
 fn grid_row<'a>(emoji_row: &[&'static Emoji]) -> Element<'a, BmojiMessage, RoundedTheme, Renderer> {
@@ -277,7 +284,6 @@ impl Bmoji {
 
     fn save_and_quit(&self) -> Task<BmojiMessage> {
         self.options.save();
-        println!("HOla");
         window::latest().and_then(window::close)
     }
 }
@@ -308,17 +314,8 @@ impl Bmoji {
                 self.search_query = String::new();
                 iced::widget::operation::focus(self.search_input_id.clone())
             }
-            BmojiMessage::Event(Event::Keyboard(keyboard::Event::KeyReleased {
-                key: keyboard::Key::Named(Named::Escape),
-                modifiers: _,
-                ..
-            })) => self.save_and_quit(),
-            BmojiMessage::OnSearchEnter
-            | BmojiMessage::Event(Event::Keyboard(keyboard::Event::KeyReleased {
-                key: keyboard::Key::Named(Named::Enter),
-                modifiers: _,
-                ..
-            })) => {
+            BmojiMessage::Quit => self.save_and_quit(),
+            BmojiMessage::OnSearchEnter => {
                 // Needed so that the borrow is dropped and we don't have two borrows at the same time
                 let fm = self.first_emoji.borrow().clone();
                 self.has_been_interacted = true;
@@ -333,42 +330,23 @@ impl Bmoji {
                     Task::none()
                 }
             }
-            BmojiMessage::Event(Event::Mouse(iced::mouse::Event::ButtonPressed(
-                iced::mouse::Button::Left,
-            ))) => {
+            BmojiMessage::Interaction => {
                 self.variant_picker = None;
                 self.has_been_interacted = true;
                 iced::widget::operation::focus(self.search_input_id.clone())
             }
-            BmojiMessage::Event(Event::Window(window::Event::Focused)) => Task::none(),
-            BmojiMessage::Event(Event::Window(window::Event::Unfocused)) => {
+            BmojiMessage::OnUnfocused => {
                 if self.has_been_interacted {
                     self.save_and_quit()
                 } else {
                     Task::none()
                 }
             }
-            // Avoid treating them as interactions
-            BmojiMessage::Event(Event::Mouse(iced::mouse::Event::CursorMoved { .. }))
-            | BmojiMessage::Event(Event::Keyboard(iced::keyboard::Event::ModifiersChanged(_))) => {
-                Task::none()
-            }
-            BmojiMessage::Event(Event::Mouse(iced::mouse::Event::CursorEntered)) => {
-                window::latest().and_then(window::gain_focus)
-            }
-            BmojiMessage::Event(Event::Mouse(_)) => {
+            BmojiMessage::SimpleInteraction => {
                 self.has_been_interacted = true;
                 Task::none()
             }
-            BmojiMessage::Event(Event::Keyboard(_)) => {
-                self.has_been_interacted = true;
-                Task::none()
-            }
-            BmojiMessage::Event(Event::Touch(_)) => {
-                self.has_been_interacted = true;
-                Task::none()
-            }
-            BmojiMessage::Event(_) => Task::none(),
+            BmojiMessage::GainFocus => window::latest().and_then(window::gain_focus),
         }
     }
 
@@ -513,6 +491,42 @@ impl Bmoji {
         container(column![search_row, body, categories].spacing(8))
             .padding(MAIN_PADDING as u16)
             .into()
+    }
+
+    fn subscription(&self) -> Subscription<BmojiMessage> {
+        use iced::{mouse, Event};
+
+        event::listen().filter_map(|event| match event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
+                Some(BmojiMessage::Interaction)
+            }
+            Event::Keyboard(keyboard::Event::KeyPressed {
+                modified_key: keyboard::Key::Named(key),
+                repeat: false,
+                ..
+            }) => {
+                use keyboard::key::Named;
+                match key {
+                    Named::Enter => Some(BmojiMessage::OnSearchEnter),
+                    Named::Escape => Some(BmojiMessage::Quit),
+
+                    _ => None,
+                }
+            }
+
+            Event::Mouse(mouse::Event::CursorEntered) => Some(BmojiMessage::GainFocus),
+
+            // Avoid treating them as interactions
+            Event::Mouse(mouse::Event::CursorMoved { .. })
+            | Event::Keyboard(keyboard::Event::ModifiersChanged(_)) => None,
+
+            // Most events are treated as simple interactions, showing the user has some interest
+            Event::Window(window::Event::Unfocused) => Some(BmojiMessage::OnUnfocused),
+            Event::InputMethod(_) | Event::Keyboard(_) | Event::Touch(_) | Event::Mouse(_) => {
+                Some(BmojiMessage::SimpleInteraction)
+            }
+            _ => None,
+        })
     }
 }
 
