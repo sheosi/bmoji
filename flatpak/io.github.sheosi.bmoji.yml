@@ -1,4 +1,4 @@
-app-id: com.sheosi.bmoji
+app-id: io.github.sheosi.bmoji
 runtime: org.freedesktop.Platform
 runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
@@ -8,17 +8,13 @@ command: bmoji
 
 finish-args:
   - --share=ipc # Share IPC namespace with the host (necessary for X11).
-  - --socket=x11
   - --device=dri # OpenGL rendering support.
+  - --socket=fallback-x11
 
   # Only needed if building with -tags wayland.
   - --socket=wayland
 
-  # Needed to support desktop notifications.
-  #- --talk-name=org.freedesktop.Notifications
-
-  # Allowing access to the home directory as example.
-  #- --filesystem=home
+  - --device=dri
 
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
