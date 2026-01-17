@@ -15,12 +15,14 @@ use iced::keyboard::key::Named;
 use iced::widget::operation::focus;
 use iced::widget::text_input::Icon;
 use iced::widget::{button, column, container, responsive, row, scrollable, text, text_input, Id};
-use iced::{keyboard, window, Element, Event, Font, Length, Pixels, Renderer, Settings, Task};
+use iced::{
+    keyboard, window, Color, Element, Event, Font, Length, Pixels, Renderer, Settings, Task,
+};
 use search::{SearchEngine, TantivySearch};
 use serde::{Deserialize, Serialize};
 use theme::RoundedTheme;
 
-use crate::theme::ButtonStyle;
+use crate::theme::{ButtonStyle, TextType};
 
 // Values that could be useful to be configured
 mod conf {
@@ -275,6 +277,7 @@ impl Bmoji {
 
     fn save_and_quit(&self) -> Task<BmojiMessage> {
         self.options.save();
+        println!("HOla");
         window::latest().and_then(window::close)
     }
 }
@@ -445,7 +448,23 @@ impl Bmoji {
             .collect::<Vec<_>>();
             *self.first_emoji.borrow_mut() = emoji_list.first().cloned();
 
-            self.grid_of(emoji_list)
+            if emoji_list.is_empty() {
+                let msg = if self.search_query.is_empty() {
+                    "Use emojis for them to appear here"
+                } else {
+                    "Nothing found"
+                };
+
+                responsive(move |_| {
+                    iced::widget::Text::new(msg)
+                        .class(TextType::Disabled)
+                        .width(Length::Fill)
+                        .into()
+                })
+                .into()
+            } else {
+                self.grid_of(emoji_list)
+            }
         };
 
         fn category<'a>(

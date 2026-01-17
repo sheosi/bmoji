@@ -117,7 +117,9 @@ impl SearchEngine for TantivySearch {
     fn search_emojis(&self, emoji: &str, max_count: u32) -> Vec<&'static Emoji> {
         use emoji::lookup_by_glyph::lookup;
 
-        let query = self.query_parser.parse_query(emoji).unwrap();
+        let Ok(query) = self.query_parser.parse_query(emoji) else {
+            return Vec::new();
+        };
 
         let top_docs: Vec<(Score, DocAddress)> = self
             .searcher

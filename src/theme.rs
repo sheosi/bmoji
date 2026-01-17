@@ -302,13 +302,28 @@ impl iced::widget::scrollable::Catalog for RoundedTheme {
     }
 }
 
+#[derive(Default)]
+pub enum TextType {
+    #[default]
+    Normal,
+    Disabled,
+}
+
 impl iced::widget::text::Catalog for RoundedTheme {
-    type Class<'a> = ();
+    type Class<'a> = TextType;
 
-    fn default<'a>() -> Self::Class<'a> {}
+    fn default<'a>() -> Self::Class<'a> {
+        TextType::Normal
+    }
 
-    fn style(&self, _: &Self::Class<'_>) -> iced::widget::text::Style {
-        iced::widget::text::base(&self.internal)
+    fn style(&self, cls: &Self::Class<'_>) -> iced::widget::text::Style {
+        let mut txt = iced::widget::text::base(&self.internal);
+
+        if matches!(cls, TextType::Disabled) {
+            txt.color = Some(Color::from_rgb8(180, 180, 180));
+        }
+
+        txt
     }
 }
 
