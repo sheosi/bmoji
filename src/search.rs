@@ -12,22 +12,6 @@ pub trait SearchEngine {
     fn search_emojis(&self, emoji: &str, max_count: u32) -> Vec<&'static Emoji>;
 }
 
-pub struct DefSearch {
-    lang: String,
-}
-
-impl DefSearch {
-    pub fn new(lang: String) -> Self {
-        DefSearch { lang }
-    }
-}
-
-impl SearchEngine for DefSearch {
-    fn search_emojis(&self, emoji: &str, _max_count: u32) -> Vec<&'static Emoji> {
-        emoji::search::search_annotation_all(emoji)
-    }
-}
-
 pub struct TantivySearch {
     searcher: Searcher,
     glyph: Field,
