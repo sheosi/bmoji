@@ -1,38 +1,38 @@
 app-id: com.sheosi.bmoji
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
-    - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.rust-stable
 command: bmoji
 
 finish-args:
-    - --share=ipc # Share IPC namespace with the host (necessary for X11).
-    - --socket=x11
-    - --device=dri # OpenGL rendering support.
+  - --share=ipc # Share IPC namespace with the host (necessary for X11).
+  - --socket=x11
+  - --device=dri # OpenGL rendering support.
 
-    # Only needed if building with -tags wayland.
-    - --socket=wayland
+  # Only needed if building with -tags wayland.
+  - --socket=wayland
 
-    # Needed to support desktop notifications.
-    #- --talk-name=org.freedesktop.Notifications
+  # Needed to support desktop notifications.
+  #- --talk-name=org.freedesktop.Notifications
 
-    # Allowing access to the home directory as example.
-    #- --filesystem=home
+  # Allowing access to the home directory as example.
+  #- --filesystem=home
 
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
 
 modules:
-    - name: bmoji
-      buildsystem: simple
-      build-commands:
-        - cargo --offline fetch --manifest-path Cargo.toml --verbose
-        - cargo --offline build --release --verbose
-        - install -Dm00755 ./target/release/bmoji $FLATPAK_DEST/bin/bmoji
-        - install -Dm00644 ./flatpak/Icon.png $FLATPAK_DEST/share/icons/hicolor/256x256/apps/$FLATPAK_ID.png
-        - install -Dm00644 ./flatpak/$FLATPAK_ID.desktop $FLATPAK_DEST/share/applications/$FLATPAK_ID.desktop
-        - install -Dm00644 ./flatpak/$FLATPAK_ID.appdata.xml $FLATPAK_DEST/share/appdata/$FLATPAK_ID.appdata.xml
-      sources:
-        - type: dir
-          path: ../
+  - name: bmoji
+    buildsystem: simple
+    build-commands:
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
+      - install -Dm00755 ./target/release/bmoji $FLATPAK_DEST/bin/bmoji
+      - install -Dm00644 ./flatpak/Icon.png $FLATPAK_DEST/share/icons/hicolor/256x256/apps/$FLATPAK_ID.png
+      - install -Dm00644 ./flatpak/$FLATPAK_ID.desktop $FLATPAK_DEST/share/applications/$FLATPAK_ID.desktop
+      - install -Dm00644 ./flatpak/$FLATPAK_ID.appdata.xml $FLATPAK_DEST/share/appdata/$FLATPAK_ID.appdata.xml
+    sources:
+      - type: dir
+        path: ../
