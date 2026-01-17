@@ -39,7 +39,6 @@ const MAIN_PADDING: u32 = 10;
 const GOLDEN_RATIO: f32 = 1.618034;
 const SCROLLBAR_PADDING: u32 = 12;
 const EMOJI_FONT: Font = Font::with_name("Noto Color Emoji");
-const SEARCH_INPUT_ID: &str = "search";
 
 fn get_conf_dir() -> PathBuf {
     PathBuf::from(env::var("XDG_CONFIG_HOME").unwrap_or(format!(
@@ -290,7 +289,9 @@ impl Bmoji {
 
 impl Bmoji {
     fn new() -> (Self, Task<BmojiMessage>) {
-        (Self::default(), focus(SEARCH_INPUT_ID))
+        let res = Self::default();
+        let id = res.search_input_id.clone();
+        (res, focus(id))
     }
 
     fn update(&mut self, message: BmojiMessage) -> iced::Task<BmojiMessage> {
@@ -299,7 +300,7 @@ impl Bmoji {
                 self.search_query = query;
                 self.variant_picker = None;
                 self.has_been_interacted = true;
-                iced::widget::operation::focus(self.search_input_id.clone())
+                focus(self.search_input_id.clone())
             }
             BmojiMessage::Glyph(glyph) => self.copy_and_quit(glyph),
             BmojiMessage::ShowGlyphVariants(emoji) => {
@@ -312,7 +313,7 @@ impl Bmoji {
                 self.variant_picker = None;
                 self.has_been_interacted = true;
                 self.search_query = String::new();
-                iced::widget::operation::focus(self.search_input_id.clone())
+                focus(self.search_input_id.clone())
             }
             BmojiMessage::Quit => self.save_and_quit(),
             BmojiMessage::OnSearchEnter => {
@@ -333,7 +334,7 @@ impl Bmoji {
             BmojiMessage::Interaction => {
                 self.variant_picker = None;
                 self.has_been_interacted = true;
-                iced::widget::operation::focus(self.search_input_id.clone())
+                focus(self.search_input_id.clone())
             }
             BmojiMessage::OnUnfocused => {
                 if self.has_been_interacted {
