@@ -11,10 +11,12 @@ use std::str::FromStr;
 use std::sync::LazyLock;
 
 use emoji::Emoji;
-use iced::alignment::Horizontal;
+use iced::alignment::{self, Horizontal, Vertical};
 use iced::widget::operation::focus;
 use iced::widget::text_input::Icon;
-use iced::widget::{button, column, container, responsive, row, scrollable, text, text_input, Id};
+use iced::widget::{
+    button, column, container, responsive, row, scrollable, text, text_input, Container, Id,
+};
 use iced::{
     event, keyboard, window, Element, Font, Length, Pixels, Renderer, Settings, Subscription, Task,
 };
@@ -35,8 +37,9 @@ mod conf {
 }
 
 // Application's constants
-const MAIN_PADDING: u32 = 10;
-const GOLDEN_RATIO: f32 = 1.618034;
+const VER_PADDING: u32 = 4;
+const HOR_PADDING: u32 = 7;
+const WINDOW_RATIO: f32 = 1.618034;
 const SCROLLBAR_PADDING: u32 = 12;
 const EMOJI_FONT: Font = Font::with_name("Noto Color Emoji");
 
@@ -56,9 +59,9 @@ static OPTIONS_PATH: LazyLock<PathBuf> =
 
 fn main() -> iced::Result {
     let width = ((conf::EMOJI_SIZE + conf::SPACING) * conf::EMOJI_PER_LINE
-        + MAIN_PADDING * 2
+        + VER_PADDING * 2
         + SCROLLBAR_PADDING) as f32;
-    let height = ((width as f32) / GOLDEN_RATIO).ceil();
+    let height = ((width as f32) / WINDOW_RATIO).ceil();
 
     let app_settings = Settings {
         antialiasing: true,
@@ -230,10 +233,12 @@ fn emoji_button<'a>(
             .size(conf::EMOJI_FONT_SIZE)
             .line_height(conf::EMOJI_LINE_HEIGHT)
             .align_x(Horizontal::Center)
+            .align_y(Vertical::Center)
             .font(EMOJI_FONT),
     )
     .height(conf::EMOJI_SIZE)
     .width(conf::EMOJI_SIZE)
+    .padding(7.5)
     .class(if has_variants {
         ButtonStyle::Category
     } else {
@@ -267,9 +272,13 @@ impl Bmoji {
                 .map(grid_row)
                 .collect::<Vec<_>>();
 
-            let emoji_grid = column(rows).spacing(conf::SPACING);
-            scrollable(emoji_grid).width(Length::Fill).into()
+            let emoji_grid = column(rows).spacing(conf::SPACING).padding(0);
+            scrollable(emoji_grid)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .into()
         })
+        .height(Length::Fill)
         .into()
     }
 
@@ -362,12 +371,14 @@ impl Bmoji {
                 size: Some(Pixels(16.0)),
                 spacing: 10.0,
                 side: text_input::Side::Left,
-            });
+            })
+            .line_height(0.8)
+            .padding(9);
         let clear_search = button("X")
-            .on_press_maybe(if self.search_query.is_empty() {
-                None
+            .on_press(if self.search_query.is_empty() {
+                BmojiMessage::Quit
             } else {
-                Some(BmojiMessage::Search(String::new()))
+                BmojiMessage::Search(String::new())
             })
             .width(32)
             .class(ButtonStyle::ClearSearch);
@@ -434,37 +445,44 @@ impl Bmoji {
                     "Nothing found"
                 };
 
-                responsive(move |_| {
-                    iced::widget::Text::new(msg)
-                        .class(TextType::Disabled)
-                        .width(Length::Fill)
-                        .into()
-                })
-                .into()
+                let txt: Element<'_, BmojiMessage, RoundedTheme> = iced::widget::Text::new(msg)
+                    .class(TextType::Disabled)
+                    .into();
+
+                Container::new(txt)
+                    .align_x(alignment::Horizontal::Center)
+                    .align_y(alignment::Vertical::Center)
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .into()
             } else {
                 self.grid_of(emoji_list)
             }
         };
+
+        fn category_btn<'a>(
+            glyph: &'static str,
+            current_cat: EmojiCategory,
+            category: EmojiCategory,
+        ) -> iced::widget::Button<'a, BmojiMessage, RoundedTheme> {
+            button(text(glyph).font(EMOJI_FONT))
+                .class(if current_cat == category {
+                    theme::ButtonStyle::Category
+                } else {
+                    theme::ButtonStyle::Plain
+                })
+                .padding([3, 5])
+                .width(29)
+        }
 
         fn category<'a>(
             glyph: &'static str,
             current_cat: EmojiCategory,
             category: EmojiCategory,
         ) -> iced::widget::Button<'a, BmojiMessage, RoundedTheme> {
-            button(text(glyph).font(EMOJI_FONT))
+            category_btn(glyph, current_cat, category)
                 .on_press(BmojiMessage::CategoryChanged(category))
-                .class(if current_cat == category {
-                    theme::ButtonStyle::Category
-                } else {
-                    theme::ButtonStyle::Plain
-                })
         }
-
-        let history_style = if self.category == EmojiCategory::History {
-            theme::ButtonStyle::Category
-        } else {
-            theme::ButtonStyle::Plain
-        };
 
         let history_on_press = if self.options.history.is_empty() {
             None
@@ -473,9 +491,8 @@ impl Bmoji {
         };
 
         let categories = row!(
-            button(text("🕑").font(EMOJI_FONT))
-                .on_press_maybe(history_on_press)
-                .class(history_style),
+            category_btn("🕑", self.category, EmojiCategory::History)
+                .on_press_maybe(history_on_press),
             category("😃", self.category, EmojiCategory::SmileysAndEmotion),
             category("🧑", self.category, EmojiCategory::PeopleAndBody),
             category("⚽", self.category, EmojiCategory::Activities),
@@ -487,10 +504,13 @@ impl Bmoji {
             category("🚀", self.category, EmojiCategory::TravelAndPlaces),
         )
         .spacing(0)
-        .width(Length::Fill);
+        .padding(0)
+        .align_y(alignment::Vertical::Bottom)
+        .width(Length::Fill)
+        .height(30);
 
-        container(column![search_row, body, categories].spacing(8))
-            .padding(MAIN_PADDING as u16)
+        container(column![search_row, body, categories].spacing(2))
+            .padding([VER_PADDING as u16, HOR_PADDING as u16])
             .into()
     }
 
