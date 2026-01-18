@@ -28,12 +28,14 @@ use crate::theme::{ButtonStyle, TextType};
 
 // Values that could be useful to be configured
 mod conf {
-    pub const EMOJI_SIZE: u32 = 30;
+    pub const EMOJI_SIZE: u32 = 33;
     pub const SPACING: u32 = 6;
-    pub const EMOJI_PER_LINE: u32 = 8;
-    pub const EMOJI_FONT_SIZE: u32 = 16;
+    pub const EMOJI_PER_LINE: u32 = 9;
+    pub const EMOJI_FONT_SIZE: u32 = 23;
     pub const EMOJI_LINE_HEIGHT: f32 = 0.93;
     pub const MAX_HISTORY_SIZE: usize = 80;
+    pub const CAT_EMOJI_FONT_SIZE: u32 = 23;
+    pub const CAT_EMOJI_SIZE: u32 = 35;
 }
 
 // Application's constants
@@ -372,17 +374,23 @@ impl Bmoji {
                 spacing: 10.0,
                 side: text_input::Side::Left,
             })
-            .line_height(0.8)
-            .padding(9);
-        let clear_search = button("X")
-            .on_press(if self.search_query.is_empty() {
-                BmojiMessage::Quit
-            } else {
-                BmojiMessage::Search(String::new())
-            })
-            .width(32)
-            .class(ButtonStyle::ClearSearch);
-        let search_row = row![inp_search, clear_search].spacing(7);
+            .line_height(1.2)
+            .padding(6);
+
+        let clear_search = button(
+            text("X")
+                .align_x(alignment::Horizontal::Center)
+                .align_y(alignment::Vertical::Center),
+        )
+        .on_press(if self.search_query.is_empty() {
+            BmojiMessage::Quit
+        } else {
+            BmojiMessage::Search(String::new())
+        })
+        .height(30)
+        .width(30)
+        .class(ButtonStyle::ClearSearch);
+        let search_row = row![inp_search, clear_search].spacing(7).padding(9);
 
         fn emojis_category(cat: &str) -> Vec<&'static Emoji> {
             emoji::lookup_by_glyph::iter_emoji()
@@ -465,14 +473,20 @@ impl Bmoji {
             current_cat: EmojiCategory,
             category: EmojiCategory,
         ) -> iced::widget::Button<'a, BmojiMessage, RoundedTheme> {
-            button(text(glyph).font(EMOJI_FONT))
-                .class(if current_cat == category {
-                    theme::ButtonStyle::Category
-                } else {
-                    theme::ButtonStyle::Plain
-                })
-                .padding([3, 5])
-                .width(29)
+            button(
+                text(glyph)
+                    .font(EMOJI_FONT)
+                    .size(conf::CAT_EMOJI_FONT_SIZE)
+                    .align_x(alignment::Horizontal::Center)
+                    .align_y(alignment::Vertical::Center),
+            )
+            .class(if current_cat == category {
+                theme::ButtonStyle::Category
+            } else {
+                theme::ButtonStyle::Plain
+            })
+            .padding([3, 5])
+            .width(conf::CAT_EMOJI_SIZE)
         }
 
         fn category<'a>(
