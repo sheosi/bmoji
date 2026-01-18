@@ -7,5 +7,5 @@ Exec=bmoji
 Terminal=false
 Categories=Utility;
 Keywords=Emoji;
-Icon=com.sheosi.bmoji
+Icon=io.github.sheosi.bmoji
 StartupNotify=true

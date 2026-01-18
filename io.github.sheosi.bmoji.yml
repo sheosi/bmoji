@@ -41,7 +41,7 @@ modules:
       - install -Dm00644 ./flatpak/$FLATPAK_ID.appdata.xml $FLATPAK_DEST/share/appdata/$FLATPAK_ID.appdata.xml
     sources:
       - type: dir
-        path: ../
+        path: ./
     cleanup:
       - /target
       - /.cargo

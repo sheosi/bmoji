@@ -260,7 +260,7 @@ impl iced::widget::scrollable::Catalog for RoundedTheme {
             scrollable::Style {
                 container: iced::widget::container::transparent(theme),
                 vertical_rail: scrollable::Rail {
-                    background: Some(palette.background.weak.color.into()),
+                    background: Some(palette.background.weaker.color.into()),
                     border: iced::Border {
                         radius: 8.0.into(),
                         width: border_width,

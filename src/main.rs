@@ -45,7 +45,7 @@ const EMOJI_FONT: Font = Font::with_name("Noto Color Emoji");
 
 fn get_conf_dir() -> PathBuf {
     PathBuf::from(env::var("XDG_CONFIG_HOME").unwrap_or(format!(
-        "{}/.var/app/com.sheosi.bmoji/config",
+        "{}/.var/app/io.github.sheosi.bmoji/config",
         env::var("HOME").unwrap()
     )))
 }
@@ -74,7 +74,7 @@ fn main() -> iced::Result {
         resizable: false,
         size: iced::Size { width, height },
         platform_specific: window::settings::PlatformSpecific {
-            application_id: "com.sheosi.bmoji".to_string(),
+            application_id: "io.github.sheosi.bmoji".to_string(),
             override_redirect: false,
         },
         icon: window::icon::from_file_data(

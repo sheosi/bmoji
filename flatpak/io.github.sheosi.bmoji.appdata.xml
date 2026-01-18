@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Bilal Elmoussaoui 2020 <bilal.elmoussaoui@gnome.org> -->
 <component type="desktop-application">
-  <id>com.sheosi.bmoji</id>
+  <id>io.github.sheosi.bmoji</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>BSD-3-Clause</project_license>
   <name>Bmoji</name>
@@ -16,7 +16,10 @@
       <caption>Main Window</caption>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://belmoussaoui.com/</url>
+  <url type="homepage">https://github.com/sheosi/bmoji/</url>
+  <url type="bugtracker">https://github.com/sheosi/bmoji/issues</url>
+  <url type="contribute">https://github.com/sheosi/bmoji</url>
+  <url type="vcs-browser">https://github.com/sheosi/bmoji/</url>
 <!--
 Open Age Rating Service
 https://hughsie.github.io/oars/index.html
@@ -40,5 +43,5 @@ https://hughsie.github.io/oars/index.html
   <developer_name>Sergio Tortosa</developer_name>
   <update_contact>sertorbe@protonmail.com</update_contact>
 
-  <launchable type="desktop-id">com.sheosi.bmoji.desktop</launchable>
+  <launchable type="desktop-id">io.github.sheosi.bmoji.desktop</launchable>
 </component>
