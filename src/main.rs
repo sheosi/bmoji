@@ -252,11 +252,12 @@ fn grid_row<'a>(emoji_row: &[&'static Emoji]) -> Element<'a, BmojiMessage, Round
     let button_row = emoji_row
         .iter()
         .map(|emoji_data| {
-            emoji_button(emoji_data.glyph, !emoji_data.variants.is_empty())
-                .on_press(if emoji_data.variants.is_empty() {
-                    BmojiMessage::Glyph(emoji_data.glyph)
-                } else {
+            let is_variant = emoji_data.variants.len() > 1;
+            emoji_button(emoji_data.glyph, is_variant)
+                .on_press(if is_variant {
                     BmojiMessage::ShowGlyphVariants(emoji_data)
+                } else {
+                    BmojiMessage::Glyph(emoji_data.glyph)
                 })
                 .into()
         })
@@ -387,8 +388,8 @@ impl Bmoji {
         } else {
             BmojiMessage::Search(String::new())
         })
-        .height(30)
-        .width(30)
+        .height(32)
+        .width(32)
         .class(ButtonStyle::ClearSearch);
         let search_row = row![inp_search, clear_search].spacing(7).padding(9);
 
