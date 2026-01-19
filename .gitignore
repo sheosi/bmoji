@@ -1,0 +1,8 @@
+/target
+/.flatpak-builder
+/build-dir
+/vendor
+index
+repo
+node_modules
+.astro

@@ -1,0 +1,64 @@
+---
+const features = [
+  {
+    icon: "zap",
+    title: "Blazingly fast",
+    description: "Built with Rust and the iced GUI framework for minimal load times and maximum performance. Opens instantly when you need it.",
+  },
+  {
+    icon: "search",
+    title: "Instant search",
+    description: "Find the perfect emoji in milliseconds. Type to search through thousands of emojis with fuzzy matching.",
+  },
+  {
+    icon: "globe",
+    title: "Multi-language",
+    description: "Search for emojis in your native language. Full support for multiple locales out of the box.",
+  },
+  {
+    icon: "cpu",
+    title: "Lightweight",
+    description: "Uses less than 100MB RAM while running. Zero memory footprint when closed - no background processes.",
+  },
+  {
+    icon: "layout",
+    title: "Desktop agnostic",
+    description: "Works seamlessly with GNOME, KDE, Sway, i3, Hyprland, and any other Linux desktop environment.",
+  },
+  {
+    icon: "package",
+    title: "Zero dependencies",
+    description: "Fully self-contained binary with no runtime dependencies. Just download and run.",
+  },
+];
+
+const icons = {
+  zap: `<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+  search: `<circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" fill="none"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
+  globe: `<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M2 12h20" stroke="currentColor" stroke-width="2"/>`,
+  cpu: `<rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="9" y="9" width="6" height="6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" stroke="currentColor" stroke-width="2"/>`,
+  layout: `<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="2"/>`,
+  package: `<path d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" stroke="currentColor" stroke-width="2"/>`,
+};
+---
+
+<section id="features" class="scroll-mt-20 px-6 py-24">
+  <div class="mx-auto max-w-6xl">
+    <div class="mb-16 text-center">
+      <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground md:text-4xl">Simple by design</h2>
+      <p class="mx-auto max-w-2xl text-muted-foreground">
+        No bloat. No unnecessary features. Just a fast, reliable emoji picker that gets out of your way.
+      </p>
+    </div>
+
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {features.map((feature) => (
+        <div class="rounded-lg border border-border bg-card p-6">
+          <svg class="mb-4 h-8 w-8 text-accent" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" set:html={icons[feature.icon]} />
+          <h3 class="mb-2 text-lg font-semibold text-foreground">{feature.title}</h3>
+          <p class="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
