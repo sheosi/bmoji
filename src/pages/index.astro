@@ -1,0 +1,27 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Stats from "../components/Stats.astro";
+import Screenshot from "../components/Screenshot.astro";
+import Features from "../components/Features.astro";
+import Installation from "../components/Installation.astro";
+import Footer from "../components/Footer.astro";
+import Usage from "../components/Usage.astro";
+---
+
+<Layout
+    title="bmoji - Fast Emoji Keyboard for Linux"
+    description="A fast, lightweight FOSS emoji keyboard for Linux desktops. Written in Rust with instant search and multi-language support."
+>
+    <Header />
+    <main>
+        <Hero />
+        <Stats />
+        <Screenshot />
+        <Features />
+        <Usage />
+        <Installation />
+    </main>
+    <Footer />
+</Layout>

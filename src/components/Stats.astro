@@ -1,0 +1,27 @@
+---
+const stats = [
+    { value: "100mb", label: "RAM usage while open" },
+    { value: "0", label: "runtime dependencies" },
+    { value: "100ms", label: "typical startup time" },
+    { value: "100%", label: "desktop agnostic" },
+];
+---
+
+<section class="border-y border-border bg-card">
+    <div
+        class="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-border md:grid-cols-4"
+    >
+        {
+            stats.map((stat) => (
+                <div class="px-6 py-10 text-center">
+                    <div class="mb-1 text-3xl font-bold text-foreground md:text-4xl">
+                        {stat.value}
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        {stat.label}
+                    </div>
+                </div>
+            ))
+        }
+    </div>
+</section>

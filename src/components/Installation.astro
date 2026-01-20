@@ -1,0 +1,124 @@
+---
+const installMethods = [
+    {
+        id: "flatpak",
+        name: "Flatpak",
+        command: "flatpak install io.github.sheosi.bmoji",
+    },
+    { id: "cargo", name: "Cargo", command: "cargo install bmoji" },
+];
+
+const buildFromSource = `git clone https://github.com/sheosi/bmoji.git
+cd bmoji
+cargo build --release`;
+---
+
+<section
+    id="installation"
+    class="scroll-mt-20 border-t border-border px-6 py-24"
+>
+    <div class="mx-auto max-w-3xl">
+        <div class="mb-12 text-center">
+            <h2
+                class="mb-4 text-3xl font-bold tracking-tight text-foreground md:text-4xl"
+            >
+                Get started in seconds
+            </h2>
+            <p class="text-muted-foreground">
+                Install bmoji using your preferred package manager.
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            {
+                installMethods.map((method) => (
+                    <div class="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                        <div class="flex items-center gap-4">
+                            <span class="w-16 text-sm font-medium text-muted-foreground">
+                                {method.name}
+                            </span>
+                            <code class="font-mono text-sm text-foreground">
+                                {method.command}
+                            </code>
+                        </div>
+                        <button
+                            type="button"
+                            class="copy-btn inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            data-command={method.command}
+                            aria-label={`Copy ${method.name} command`}
+                        >
+                            <svg
+                                class="copy-icon h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <rect
+                                    x="9"
+                                    y="9"
+                                    width="13"
+                                    height="13"
+                                    rx="2"
+                                    stroke-width="2"
+                                />
+                                <path
+                                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                    stroke-width="2"
+                                />
+                            </svg>
+                            <svg
+                                class="check-icon hidden h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M20 6L9 17l-5-5"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                ))
+            }
+        </div>
+
+        <div class="mt-8 rounded-lg border border-border bg-secondary/30 p-6">
+            <h3 class="mb-2 font-semibold text-foreground">
+                Build from source
+            </h3>
+            <p class="mb-4 text-sm text-muted-foreground">
+                Clone the repository and build with Cargo for the latest
+                features.
+            </p>
+            <div class="overflow-x-auto rounded-md bg-card p-4">
+                <pre
+                    class="font-mono text-sm text-foreground"><code>{buildFromSource}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.querySelectorAll(".copy-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const command = btn.getAttribute("data-command");
+            if (!command) return;
+
+            await navigator.clipboard.writeText(command);
+
+            const copyIcon = btn.querySelector(".copy-icon");
+            const checkIcon = btn.querySelector(".check-icon");
+
+            copyIcon?.classList.add("hidden");
+            checkIcon?.classList.remove("hidden");
+
+            setTimeout(() => {
+                copyIcon?.classList.remove("hidden");
+                checkIcon?.classList.add("hidden");
+            }, 2000);
+        });
+    });
+</script>
