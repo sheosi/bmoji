@@ -7,6 +7,7 @@ description = "An emoji picker that's fast, simple and to the point.Made with Ru
 homepage = "https://sheosi.github.io/bmoji"
 repository = "https://github.com/sheosi/bmoji"
 readme = "README.md"
+keywords = ["keyboard", "linux", "emoji"]
 
 [dependencies]
 # "root" is not a valid a language so it makes the parser go boom! at runtime, has to be removed
