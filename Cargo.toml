@@ -2,8 +2,11 @@
 name = "bmoji"
 version = "0.3.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "An emoji picker that's fast, simple and to the point.Made with Rust and Iced."
+homepage = "https://sheosi.github.io/bmoji"
+repository = "https://github.com/sheosi/bmoji"
+readme = "README.md"
 
 [dependencies]
 # "root" is not a valid a language so it makes the parser go boom! at runtime, has to be removed
