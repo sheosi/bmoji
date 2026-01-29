@@ -1,3 +1,3 @@
 build-flatpak:
     cargo vendor
-    flatpak-builder --user --install --force-clean build-dir flatpak/io.github.sheosi.bmoji.yml
+    flatpak run --command=flathub-build org.flatpak.Builder --install  io.github.sheosi.bmoji.yml
