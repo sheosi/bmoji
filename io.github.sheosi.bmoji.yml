@@ -14,14 +14,14 @@ finish-args:
   # Only needed if building with -tags wayland.
   - --socket=wayland
 
-  - --device=dri
-
-build-options:
-  append-path: "/usr/lib/sdk/rust-stable/bin"
-
 modules:
   - name: bmoji
     buildsystem: simple
+    build-options:
+      append-path: "/usr/lib/sdk/rust-stable/bin"
+      env:
+        CARGO_NET_OFFLINE: "true"
+
     build-commands:
       # 1. Create the config file to point to the vendored crates
       - |
@@ -40,8 +40,10 @@ modules:
       - install -Dm00644 ./flatpak/$FLATPAK_ID.desktop $FLATPAK_DEST/share/applications/$FLATPAK_ID.desktop
       - install -Dm00644 ./flatpak/$FLATPAK_ID.appdata.xml $FLATPAK_DEST/share/appdata/$FLATPAK_ID.appdata.xml
     sources:
-      - type: dir
-        path: ./
+      - type: git
+        url: https://github.com/sheosi/bmoji
+        tag: "main"
+      - cargo-sources.json
     cleanup:
       - /target
       - /.cargo
