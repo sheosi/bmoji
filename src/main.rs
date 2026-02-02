@@ -287,7 +287,7 @@ impl Bmoji {
 
     fn copy_and_quit(&mut self, glyph: &'static str) -> Task<BmojiMessage> {
         self.options.history.add(glyph.to_string());
-        println!("Copying to clipboard");
+        println!("Copying to clipboard {}", glyph.to_string());
         Task::batch([
             iced::clipboard::write(glyph.to_string()),
             self.save_and_quit(),
